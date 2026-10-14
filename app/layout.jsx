@@ -1,0 +1,1 @@
+export const metadata={title:'Mentor Sistêmico',description:'Conversas fundamentadas em uma biblioteca de 18 livros'};export default function RootLayout({children}){return <html lang="pt-BR"><body style={{fontFamily:'Arial,sans-serif',margin:0,background:'#f7f6f2'}}>{children}</body></html>}
