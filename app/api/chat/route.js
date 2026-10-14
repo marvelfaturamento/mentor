@@ -12,7 +12,7 @@ export async function POST(request){
   if(!token)return error('Entre na sua conta novamente.',401);
   const authClient=createClient(url,publicKey||process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}});
   const {data:{user},error:authError}=await authClient.auth.getUser(token);
-  if(authError||!user){console.error('Supabase auth failed',authError?.status,authError?.code);return error('Sessão inválida. Saia e entre novamente; se persistir, confira as credenciais do projeto Supabase.',401);}
+  if(authError||!user){const status=authError?.status||null,code=authError?.code||'unknown';console.error('MENTOR_AUTH_DIAGNOSTIC',JSON.stringify({status,code,hasToken:!!token,tokenParts:token.split('.').length,hasPublicKey:!!publicKey,project:'gbsepcnbcrwkvkispube'}));return error('Falha na validação da sessão (código: '+code+', HTTP: '+(status||'n/d')+'). Saia e entre novamente.',401);}
   const admin=createClient(url,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}});
   const db=createClient(url,publicKey||process.env.SUPABASE_SERVICE_ROLE_KEY,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false}});
   const body=await request.json(),question=String(body.question||'').trim();
