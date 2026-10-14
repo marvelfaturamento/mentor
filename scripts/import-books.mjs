@@ -1,0 +1,1 @@
+console.error('Importação pendente: use o pacote de trechos extraídos e gere embeddings de 1536 dimensões antes de inserir em mentor_chunks. Não execute importações sem conferir as credenciais e a origem dos PDFs.');process.exit(1);
