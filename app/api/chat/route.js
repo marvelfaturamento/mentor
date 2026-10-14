@@ -10,9 +10,10 @@ export async function POST(request){
   if(!process.env.SUPABASE_SERVICE_ROLE_KEY)return error('A chave privada do Supabase ainda não foi configurada no servidor.',503);
   const token=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
   if(!token)return error('Entre na sua conta novamente.',401);
+  const authClient=createClient(url,publicKey||process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}});
+  const {data:{user},error:authError}=await authClient.auth.getUser(token);
+  if(authError||!user){console.error('Supabase auth failed',authError?.status,authError?.code);return error('Sessão inválida. Saia e entre novamente; se persistir, confira as credenciais do projeto Supabase.',401);}
   const admin=createClient(url,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}});
-  const {data:{user},error:authError}=await admin.auth.getUser(token);
-  if(authError||!user)return error('Sessão inválida.',401);
   const db=createClient(url,publicKey||process.env.SUPABASE_SERVICE_ROLE_KEY,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false}});
   const body=await request.json(),question=String(body.question||'').trim();
   if(!question||question.length>6000)return error('Pergunta inválida.',400);
