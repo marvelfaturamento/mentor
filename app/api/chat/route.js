@@ -1,7 +1,7 @@
 import {createClient} from '@supabase/supabase-js';
 export const runtime='nodejs';
 const url='https://gbsepcnbcrwkvkispube.supabase.co';
-const publicKey=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY||'';
+const publicKey=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY||'sb_publishable_UqzQAXv-BFvtgOxk_dHIBQ_RPByW-nN';
 const model=process.env.GEMINI_MODEL||'gemini-2.5-flash';
 function error(message,status){return Response.json({error:message},{status});}
 export async function POST(request){
@@ -10,11 +10,11 @@ export async function POST(request){
   if(!process.env.SUPABASE_SERVICE_ROLE_KEY)return error('A chave privada do Supabase ainda não foi configurada no servidor.',503);
   const token=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
   if(!token)return error('Entre na sua conta novamente.',401);
-  const authClient=createClient(url,publicKey||process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}});
+  const authClient=createClient(url,publicKey,{auth:{persistSession:false}});
   const {data:{user},error:authError}=await authClient.auth.getUser(token);
   if(authError||!user){const status=authError?.status||null,code=authError?.code||'unknown';console.error('MENTOR_AUTH_DIAGNOSTIC',JSON.stringify({status,code,hasToken:!!token,tokenParts:token.split('.').length,hasPublicKey:!!publicKey,project:'gbsepcnbcrwkvkispube'}));return error('Falha na validação da sessão (código: '+code+', HTTP: '+(status||'n/d')+'). Saia e entre novamente.',401);}
   const admin=createClient(url,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}});
-  const db=createClient(url,publicKey||process.env.SUPABASE_SERVICE_ROLE_KEY,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false}});
+  const db=createClient(url,publicKey,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false}});
   const body=await request.json(),question=String(body.question||'').trim();
   if(!question||question.length>6000)return error('Pergunta inválida.',400);
   const {data:chunks,error:searchError}=await admin.rpc('mentor_search_text',{search_query:question,match_count:8});
