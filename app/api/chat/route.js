@@ -18,7 +18,7 @@ export async function POST(request){
   const body=await request.json(),question=String(body.question||'').trim();
   if(!question||question.length>6000)return error('Pergunta inválida.',400);
   const {data:chunks,error:searchError}=await admin.rpc('mentor_search_text',{search_query:question,match_count:8});
-  if(searchError)throw searchError;
+  if(searchError){console.error('MENTOR_SEARCH_ERROR',searchError.code,searchError.message);return error('Falha na consulta à biblioteca (código: '+(searchError.code||'indefinido')+'). Verifique a chave administrativa do Supabase.',503);}
   if(!chunks?.length)return error('Ainda não encontrei trechos dos livros para fundamentar essa resposta. A biblioteca precisa ser importada ou a pergunta reformulada.',422);
   let id=body.conversationId;
   if(id){const {data}=await db.from('mentor_conversations').select('id').eq('id',id).single();if(!data)return error('Conversa não encontrada.',403);}
@@ -36,5 +36,5 @@ export async function POST(request){
   const {error:saveError}=await db.from('mentor_messages').insert([{conversation_id:id,role:'user',content:question},{conversation_id:id,role:'assistant',content:answer,citations:chunks.map(c=>({title:c.book_title,page:c.page_number}))}]);
   if(saveError)throw saveError;
   return Response.json({conversationId:id,answer});
- }catch(e){console.error('Mentor chat',e?.message);return error('Erro ao processar a pergunta.',500);}
+ }catch(e){console.error('Mentor chat',e?.name,e?.message);return error('Erro interno no Mentor. Consulte os registros da função /api/chat na Vercel.',500);}
 }
